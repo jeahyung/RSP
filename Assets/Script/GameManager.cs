@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using System;
+
 
 public enum Choice { None, Rock, Paper, Scissors, TimeOut }
 
@@ -13,6 +16,8 @@ public class GameManager : MonoBehaviour
     public bool IsOnePlaying = false;
     
     private Choose choose;
+    
+
     [SerializeField] private int stageCnt = 10;
     [SerializeField] private int nowCnt = 1;
 
@@ -25,6 +30,10 @@ public class GameManager : MonoBehaviour
     private bool isInputPhase = true;
     //------------------타이머 관련 ---------------------------
 
+    public TextMeshProUGUI text;
+    public event Action OnWin;
+    public event Action winMoveMap;
+    public event Action loseMoveMap;
 
     private void Start()
     {
@@ -32,6 +41,8 @@ public class GameManager : MonoBehaviour
         StateMachine.ChangeState(new RockPaperScissorsState(this));
 
         choose = FindObjectOfType<Choose>();
+        
+        text.text = nowCnt.ToString();
     }
 
     private void Update()
@@ -86,6 +97,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator Win()
     {
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
+       
 
         choose.ResetAllImages();
         nowCnt++;
@@ -94,6 +106,8 @@ public class GameManager : MonoBehaviour
             StateMachine.ChangeState(new MukChiBaState(this));  //보스 스테이지로 근데 이거 어떻게 여러개로 처리할지 고민중
             nowCnt = 0;
         }
+        winMoveMap?.Invoke();
+        text.text = nowCnt.ToString();
     }
     
     public void StartLoseSequence()
@@ -105,20 +119,29 @@ public class GameManager : MonoBehaviour
     private IEnumerator Lose()
     {
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
-
+        
         choose.ResetAllImages();
         if(nowCnt <= 1)
         {
             hp--;
             if(hp <= 0)
             {
-                GameOver();
+                GameOver();                               
             }
         }
         else
         {
             nowCnt--;
         }
+        
+        text.text = nowCnt.ToString();
+        loseMoveMap?.Invoke();
+        OnWin?.Invoke();    //OnWin 임시 이름인데 불편하네;; 이거 하트 감소 시키는 이벤트
+    }
+
+    public void ReGame()
+    {
+        choose.ResetAllImages();
     }
 
     public void GameOver()

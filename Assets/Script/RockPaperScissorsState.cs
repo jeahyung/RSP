@@ -65,6 +65,7 @@ public class RockPaperScissorsState : IState
             Debug.Log(gameManager.PlayerChoice);
             gameManager.PlayerChoice = Choice.None;
             gameManager.ComputerChoice = Choice.None;
+            gameManager.ReGame();
         }
         else if ((gameManager.PlayerChoice == Choice.Rock && gameManager.ComputerChoice == Choice.Scissors) ||
                  (gameManager.PlayerChoice == Choice.Scissors && gameManager.ComputerChoice == Choice.Paper) ||
