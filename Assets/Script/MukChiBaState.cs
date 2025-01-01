@@ -41,6 +41,11 @@ public class MukChiBaState : IState
         }
     }
 
+    public void MonsterTurn()
+    {
+        GameManager.Instance.ComputerChoice = GameManager.Instance.GetRandomChoice();
+    }
+
     private void DetermineMukChiBaWinner()
     {
         if (gameManager.PlayerChoice == gameManager.ComputerChoice)

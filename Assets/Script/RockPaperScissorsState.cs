@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class RockPaperScissorsState : IState
 {
-    private GameManager gameManager;
-    //private bool inputProcessed = false;
+    //private GameManager gameManager;
 
-    public RockPaperScissorsState(GameManager gameManager)
+
+    public RockPaperScissorsState()
     {
-        this.gameManager = gameManager;
+        //this.gameManager = gameManager;
     }
+    // GameManager 싱글톤으로 변경 -> 생성자 필요없음
 
     public void Enter()
     {
@@ -19,77 +20,85 @@ public class RockPaperScissorsState : IState
 
     public void Exit()
     {
-        gameManager.PlayerChoice = Choice.None;
-        gameManager.ComputerChoice = Choice.None;
+        ChoiceReset();
     }
 
     public void HandleInput()
     {
-        gameManager.IsOnePlaying = true;
+        GameManager.Instance.IsOnePlaying = true;
 
         //**********************None처리 해야함***************************
         if (Input.GetKeyDown(KeyCode.Z))
         {
-            gameManager.PlayerChoice = Choice.Rock;
-            gameManager.ChooseUi(Choice.Rock);
+            GameManager.Instance.PlayerChoice = Choice.Rock;
+            GameManager.Instance.ChooseUi(Choice.Rock);
         }
         else if (Input.GetKeyDown(KeyCode.X))
         {
-            gameManager.PlayerChoice = Choice.Scissors;
-            gameManager.ChooseUi(Choice.Scissors);
+            GameManager.Instance.PlayerChoice = Choice.Scissors;
+            GameManager.Instance.ChooseUi(Choice.Scissors);
         }
         else if (Input.GetKeyDown(KeyCode.C))
         {
-            gameManager.PlayerChoice = Choice.Paper;
-            gameManager.ChooseUi(Choice.Paper);
+            GameManager.Instance.PlayerChoice = Choice.Paper;
+            GameManager.Instance.ChooseUi(Choice.Paper);
         }
     }
 
     public void Update()
     {
-        gameManager.IsOnePlaying = false;
+        GameManager.Instance.IsOnePlaying = false;
 
-        if (gameManager.PlayerChoice != Choice.None)
+        if (GameManager.Instance.PlayerChoice != Choice.None)
         {
-            gameManager.ComputerChoice = gameManager.GetRandomChoice();
+            //GameManager.Instance.ComputerChoice = GameManager.Instance.GetRandomChoice();
             DetermineWinner();
             //inputProcessed = false;          
         }
     }
 
+    public void MonsterTurn()
+    {
+        GameManager.Instance.ComputerChoice = GameManager.Instance.GetRandomChoice();
+    }
+
     private void DetermineWinner()
     {
-        if (gameManager.PlayerChoice == gameManager.ComputerChoice)
+        if (GameManager.Instance.PlayerChoice == GameManager.Instance.ComputerChoice)
         {
             Debug.Log("무승부! 다시 가위바위보");
-            Debug.Log(gameManager.PlayerChoice);
-            gameManager.PlayerChoice = Choice.None;
-            gameManager.ComputerChoice = Choice.None;
-            gameManager.ReGame();
+            Debug.Log(GameManager.Instance.PlayerChoice);
+            ChoiceReset();
+            GameManager.Instance.ReGame();
         }
-        else if ((gameManager.PlayerChoice == Choice.Rock && gameManager.ComputerChoice == Choice.Scissors) ||
-                 (gameManager.PlayerChoice == Choice.Scissors && gameManager.ComputerChoice == Choice.Paper) ||
-                 (gameManager.PlayerChoice == Choice.Paper && gameManager.ComputerChoice == Choice.Rock))
+        else if ((GameManager.Instance.PlayerChoice == Choice.Rock && GameManager.Instance.ComputerChoice == Choice.Scissors) ||
+                 (GameManager.Instance.PlayerChoice == Choice.Scissors && GameManager.Instance.ComputerChoice == Choice.Paper) ||
+                 (GameManager.Instance.PlayerChoice == Choice.Paper && GameManager.Instance.ComputerChoice == Choice.Rock))
         {
             Debug.Log("플레이어 승!");
-            Debug.Log(gameManager.PlayerChoice);
-            gameManager.IsPlayerAttacking = true;
+            Debug.Log(GameManager.Instance.PlayerChoice);
+            GameManager.Instance.IsPlayerAttacking = true;
             //묵찌빠 구현 가위바위보 - > 묵찌빠로 넘어감
             //gameManager.StateMachine.ChangeState(new MukChiBaState(gameManager)); 
-            gameManager.PlayerChoice = Choice.None;
-            gameManager.ComputerChoice = Choice.None;
-            gameManager.StartWinSequence();
+            ChoiceReset();
+            GameManager.Instance.StartWinSequence();
         }
         else
         {
             Debug.Log("플레이어 패배!");
-            Debug.Log(gameManager.PlayerChoice);
-            gameManager.IsPlayerAttacking = false;
+            Debug.Log(GameManager.Instance.PlayerChoice);
+            GameManager.Instance.IsPlayerAttacking = false;
             //gameManager.StateMachine.ChangeState(new MukChiBaState(gameManager));
-            gameManager.PlayerChoice = Choice.None;
-            gameManager.ComputerChoice = Choice.None;
-            gameManager.StartLoseSequence();
+            ChoiceReset();
+            GameManager.Instance.StartLoseSequence();
         }
        
     }
+
+    private void ChoiceReset()
+    {
+        GameManager.Instance.PlayerChoice = Choice.None;
+        GameManager.Instance.ComputerChoice = Choice.None;
+    }
+
 }

@@ -22,4 +22,9 @@ public class GameStateMachine //MonoBehaviour 상속 제거
     {
         currentState?.Update();
     }
+
+    public void MonsterTurn()
+    {
+        currentState?.MonsterTurn();
+    }
 }

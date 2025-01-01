@@ -8,4 +8,5 @@ public interface IState
     void Exit();
     void HandleInput();
     void Update();
+    void MonsterTurn();
 }

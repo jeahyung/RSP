@@ -9,6 +9,8 @@ public enum Choice { None, Rock, Paper, Scissors, TimeOut }
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
+
     public GameStateMachine StateMachine { get; private set; }
     public Choice PlayerChoice { get; set; }
     public Choice ComputerChoice { get; set; }
@@ -16,7 +18,7 @@ public class GameManager : MonoBehaviour
     public bool IsOnePlaying = false;
     
     private Choose choose;
-    
+    private bool monster = true;
 
     [SerializeField] private int stageCnt = 10;
     [SerializeField] private int nowCnt = 1;
@@ -35,10 +37,23 @@ public class GameManager : MonoBehaviour
     public event Action winMoveMap;
     public event Action loseMoveMap;
 
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
     private void Start()
     {
         StateMachine = new GameStateMachine();
-        StateMachine.ChangeState(new RockPaperScissorsState(this));
+        StateMachine.ChangeState(new RockPaperScissorsState());
 
         choose = FindObjectOfType<Choose>();
         
@@ -52,6 +67,14 @@ public class GameManager : MonoBehaviour
             inputTimer += Time.deltaTime;
             StateMachine.HandleInput();
 
+            if (inputTimer >= INPUT_TIME_LIMIT - 0.5f)
+            {
+                if(monster)
+                {
+                    StateMachine.MonsterTurn();
+                    monster = false;
+                }
+            }
             if (inputTimer >= INPUT_TIME_LIMIT)
             {
                 isInputPhase = false;
@@ -96,6 +119,8 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Win()
     {
+        monster = true;
+
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
        
 
@@ -118,6 +143,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Lose()
     {
+        monster = true;
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
         
         choose.ResetAllImages();

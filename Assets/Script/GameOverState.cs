@@ -21,4 +21,6 @@ public class GameOverState : IState
     public void HandleInput() { }
 
     public void Update() { }
+
+    public void MonsterTurn() { }
 }
