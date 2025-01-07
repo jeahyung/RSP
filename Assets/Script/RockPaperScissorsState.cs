@@ -55,6 +55,15 @@ public class RockPaperScissorsState : IState
             DetermineWinner();
             //inputProcessed = false;          
         }
+        else
+        {
+            Debug.Log("플레이어 패배!");
+            //Debug.Log(GameManager.Instance.PlayerChoice);
+            GameManager.Instance.IsPlayerAttacking = false;
+            //gameManager.StateMachine.ChangeState(new MukChiBaState(gameManager));
+            ChoiceReset();
+            GameManager.Instance.StartLoseSequence();
+        }
     }
 
     public void MonsterTurn()
@@ -68,6 +77,8 @@ public class RockPaperScissorsState : IState
         {
             Debug.Log("무승부! 다시 가위바위보");
             Debug.Log(GameManager.Instance.PlayerChoice);
+            GameManager.Instance.choiceText[0].text = GameManager.Instance.PlayerChoice.ToString();
+            GameManager.Instance.choiceText[1].text = GameManager.Instance.ComputerChoice.ToString();
             ChoiceReset();
             GameManager.Instance.ReGame();
         }
@@ -80,6 +91,8 @@ public class RockPaperScissorsState : IState
             GameManager.Instance.IsPlayerAttacking = true;
             //묵찌빠 구현 가위바위보 - > 묵찌빠로 넘어감
             //gameManager.StateMachine.ChangeState(new MukChiBaState(gameManager)); 
+            GameManager.Instance.choiceText[0].text = GameManager.Instance.PlayerChoice.ToString();
+            GameManager.Instance.choiceText[1].text = GameManager.Instance.ComputerChoice.ToString();
             ChoiceReset();
             GameManager.Instance.StartWinSequence();
         }
@@ -88,6 +101,8 @@ public class RockPaperScissorsState : IState
             Debug.Log("플레이어 패배!");
             Debug.Log(GameManager.Instance.PlayerChoice);
             GameManager.Instance.IsPlayerAttacking = false;
+            GameManager.Instance.choiceText[0].text = GameManager.Instance.PlayerChoice.ToString();
+            GameManager.Instance.choiceText[1].text = GameManager.Instance.ComputerChoice.ToString();
             //gameManager.StateMachine.ChangeState(new MukChiBaState(gameManager));
             ChoiceReset();
             GameManager.Instance.StartLoseSequence();

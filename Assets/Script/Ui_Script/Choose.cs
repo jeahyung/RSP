@@ -10,7 +10,7 @@ public class Choose : MonoBehaviour
     public RectTransform imageC;
 
     private Vector3 originalScale;
-    private float scaleDuration = 0.5f;
+    private float scaleDuration = 0.2f;
     private float scaleMultiplier = 1.5f;
 
    // private GameManager gameManager;

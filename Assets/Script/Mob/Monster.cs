@@ -1,35 +1,54 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Monster : MonoBehaviour
 {
-    private Animator ani;
-
+    private Animator selectedAnimator;
+    public List<GameObject> gameObjects = new List<GameObject>();
 
     void Start()
     {
-        ani = GetComponent<Animator>();
+        ActicateRandomObject();
+
+        GameManager.Instance.monsterTurn += SwitchingMobAni;
+        GameManager.Instance.changeMob += ActicateRandomObject;        
     }
 
-    void Update()
+    public void ActicateRandomObject()
     {
-        //선택과 동시에 none로 초기화되는 문제;;;
+        foreach (GameObject obj in gameObjects)
+        {
+            obj.SetActive(false);
+        }
+        int randomIndex = Random.Range(0, gameObjects.Count);
+        GameObject selectedObject = gameObjects[randomIndex];
+        selectedObject.SetActive(true);
+        selectedAnimator = selectedObject.GetComponent<Animator>();
+    }
+
+    public void SwitchingMobAni()
+    {
+        if (selectedAnimator == null)
+        {
+            Debug.LogWarning("No animator selected");
+            return;
+        }
+
         switch (GameManager.Instance.ComputerChoice)
         {
             case Choice.Paper:
-                ani.SetTrigger("Hurt");
+                selectedAnimator.SetTrigger("Hurt");
                 break;
-             
+
             case Choice.Scissors:
-                ani.SetTrigger("Roll");
+                selectedAnimator.SetTrigger("Roll");
                 break;
 
             case Choice.Rock:
-                Debug.Log("Attack@@@@@@@@@@@@@@");
-                ani.SetTrigger("Attack");
+                selectedAnimator.SetTrigger("Attack");
                 break;
         }
     }
-
 }

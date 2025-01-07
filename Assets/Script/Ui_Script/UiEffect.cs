@@ -31,12 +31,15 @@ public class UiEffect : MonoBehaviour
 
     public void WinMoveAndReturn()
     {
-        Debug.Log("asdf");
+        
         targetImage[0].rectTransform.DOAnchorPos(rectTransforms[1].anchoredPosition, moveDuration)
             .OnComplete(() => {
                 //targetImage[0].rectTransform.DOAnchorPos3D(originalPosition[0], moveDuration)
                 //    .SetDelay(returnDelay);
                 targetImage[0].transform.position = originalPosition[0];
+                
+                GameManager.Instance.OnisInputPhase();
+
             });
     }
 
@@ -48,6 +51,7 @@ public class UiEffect : MonoBehaviour
                 //    .SetDelay(returnDelay);
 
                 targetImage[1].transform.position = originalPosition[1];
+                GameManager.Instance.OnisInputPhase();
             });
     }
 }
