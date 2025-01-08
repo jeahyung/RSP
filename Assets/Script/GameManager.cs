@@ -33,7 +33,8 @@ public class GameManager : MonoBehaviour
     private const float INPUT_TIME_LIMIT = 2f;
     private bool isInputPhase = true;
     //------------------타이머 관련 ---------------------------
-   
+
+    private Coroutine gameLoopCoroutine; // 변경점: 새로운 변수 추가
 
 
     public TextMeshProUGUI text;
@@ -66,45 +67,115 @@ public class GameManager : MonoBehaviour
         choose = FindObjectOfType<Choose>();
         
         text.text = nowCnt.ToString();
+
+        StartGameLoop(); // 변경점: 게임 루프 시작
     }
 
-    private void Update()
+    private void StartGameLoop()
     {
-        if (isInputPhase)
+        if (gameLoopCoroutine != null)
+        {
+            StopCoroutine(gameLoopCoroutine);
+        }
+        gameLoopCoroutine = StartCoroutine(GameLoopCoroutine());
+    }
+
+    private IEnumerator GameLoopCoroutine()
+    {
+        while (true)
+        {
+            yield return StartCoroutine(InputPhaseCoroutine());
+            yield return StartCoroutine(ResultPhaseCoroutine());
+        }
+    }
+
+    private IEnumerator InputPhaseCoroutine()
+    {
+        isInputPhase = true;
+        float inputTimer = 0f;
+        monster = true;
+
+        while (inputTimer < INPUT_TIME_LIMIT)
         {
             inputTimer += Time.deltaTime;
             StateMachine.HandleInput();
-            //몬스터 애니메이션 재생을 위한 조건문
-            //monster 몬스터 애니메이션의 반복 재생을 막기 위한 bool 변수
-            if (inputTimer >= INPUT_TIME_LIMIT - 1.0f)
+
+            if ((inputTimer >= INPUT_TIME_LIMIT - 1.0f) && monster)
             {
-                if(monster)
+                StateMachine.MonsterTurn();
+                monster = false;
+                monsterTurn?.Invoke();
+            }
+
+            yield return null;
+        }
+
+        isInputPhase = false;
+    }
+
+    // 변경점: 새로운 코루틴 추가
+    private IEnumerator ResultPhaseCoroutine()
+    {
+        if (IsOnePlaying)
+        {
+            StateMachine.Update();
+
+            if (PlayerChoice != Choice.None)
+            {
+                if (IsPlayerAttacking)
                 {
-                    StateMachine.MonsterTurn();
-                    monster = false;
-                    monsterTurn?.Invoke();
+                    yield return StartCoroutine(Win());
+                }
+                else
+                {
+                    yield return StartCoroutine(Lose());
                 }
             }
-            //입력 시간 종료시 isInputPhase false로 넘기면서 판정으로 넘어감
-            if (inputTimer >= INPUT_TIME_LIMIT)
+            else
             {
-                isInputPhase = false;
-                inputTimer = 0f;                
+                PlayerChoice = Choice.TimeOut;
+                yield return StartCoroutine(Lose());
             }
         }
-        else
-        {            
-            if (IsOnePlaying)
-            {
-                StateMachine.Update();
 
-                //isInputPhase 타이머 재시작을 위한 불 변수
-                //isInputPhase = true;        //이걸 화면전환이나 이벤트로 관리시 1층에서 게임의 재시작에 대한 문제가 발생할 우려가 있음
-              
-            }
-        }
+        yield return new WaitForSeconds(0.1f);
+    }
+
+
+    private void Update()
+    {
+        //if (isInputPhase)
+        //{
+        //    inputTimer += Time.deltaTime;
         //    StateMachine.HandleInput();
-        //if (IsOnePlaying) { StateMachine.Update(); }        
+        //    //몬스터 애니메이션 재생을 위한 조건문
+        //    //monster 몬스터 애니메이션의 반복 재생을 막기 위한 bool 변수
+        //    if ((inputTimer >= INPUT_TIME_LIMIT - 1.0f) && (monster))
+        //    {                
+        //        StateMachine.MonsterTurn();
+        //        monster = false;
+        //        monsterTurn?.Invoke();                
+        //    }
+        //    //입력 시간 종료시 isInputPhase false로 넘기면서 판정으로 넘어감
+        //    if (inputTimer >= INPUT_TIME_LIMIT)
+        //    {
+        //        isInputPhase = false;
+        //        inputTimer = 0f;                
+        //    }
+        //}
+        //else
+        //{            
+        //    if (IsOnePlaying)
+        //    {
+        //        StateMachine.Update();
+
+        //        //isInputPhase 타이머 재시작을 위한 불 변수
+        //        //isInputPhase = true;        //이걸 화면전환이나 이벤트로 관리시 1층에서 게임의 재시작에 대한 문제가 발생할 우려가 있음
+              
+        //    }
+        //}
+        ////    StateMachine.HandleInput();
+        ////if (IsOnePlaying) { StateMachine.Update(); }        
     }
 
     private void LockPlayerInput()
@@ -129,7 +200,7 @@ public class GameManager : MonoBehaviour
 
     public void StartWinSequence()
     {
-        monster = true;
+        //monster = true;
 
         StartCoroutine(Win());
 
@@ -137,6 +208,8 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Win()
     {
+        monster = true;
+
         winMovePlayer?.Invoke();    
 
         choose.ResetAllImages();
@@ -144,24 +217,27 @@ public class GameManager : MonoBehaviour
         //if(nowCnt > stageCnt)
         //{
         //    StateMachine.ChangeState(new MukChiBaState(this));  //보스 스테이지로 근데 이거 어떻게 여러개로 처리할지 고민중
-        //    nowCnt = 0;
-        //}
+        //    nowCnt = 0;                                           //보스 단계별 체인 걸기 예시로 묵찌빠 다음 보스는 레이저면 묵찌빠 상태에서 clear불 변수로 
+        //}                                                         //클리어 여부 판단후 클리어면 묵찌빠가 바로 클리어 상태로 전환시키는 구조
         winMoveMap?.Invoke();
         text.text = nowCnt.ToString();
 
         changeMob?.Invoke();
 
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
-        //OnisInputPhase();
+                                               //OnisInputPhase();
+        StartGameLoop(); // 변경점: 게임 루프 재시작
+
     }
-    
+
     public void OnisInputPhase()
     {
         isInputPhase = true;
     }
+   
     public void StartLoseSequence()
     {
-        monster = true;
+//        monster = true;
 
         StartCoroutine(Lose());
        // Debug.Log("패배");
@@ -169,6 +245,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator Lose()
     {
+        monster = true;
 
         choose.ResetAllImages();
 
@@ -204,6 +281,8 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
         OnisInputPhase();
+        StartGameLoop(); // 변경점: 게임 루프 재시작
+
         // OnWin?.Invoke();    //OnWin 임시 이름인데 불편하네;; 이거 하트 감소 시키는 이벤트
     }
 
@@ -213,6 +292,8 @@ public class GameManager : MonoBehaviour
         OnisInputPhase();    
       //  gameStarter = false;
         choose.ResetAllImages();
+        StartGameLoop(); // 변경점: 게임 루프 재시작
+
     }
 
     public void GameOver()
