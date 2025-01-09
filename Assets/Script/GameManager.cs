@@ -18,7 +18,8 @@ public class GameManager : MonoBehaviour
     public Choice ComputerChoice { get; set; }
     public bool IsPlayerAttacking { get; set; }
     public bool IsOnePlaying = false;
-    
+    private bool isGameRunning = true;
+
     private Choose choose;
     private bool monster = true;
 
@@ -73,6 +74,8 @@ public class GameManager : MonoBehaviour
 
     private void StartGameLoop()
     {
+        isGameRunning = true;
+
         if (gameLoopCoroutine != null)
         {
             StopCoroutine(gameLoopCoroutine);
@@ -82,25 +85,30 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator GameLoopCoroutine()
     {
-        while (true)
+        while (isGameRunning)
         {
             yield return StartCoroutine(InputPhaseCoroutine());
             yield return StartCoroutine(ResultPhaseCoroutine());
         }
     }
 
+    public void StopGame()
+    {
+        isGameRunning = false;
+    }
+
     private IEnumerator InputPhaseCoroutine()
     {
         isInputPhase = true;
         float inputTimer = 0f;
-        monster = true;
+        monster = true;             //계층 구조라 필요할 수 도 있음
 
         while (inputTimer < INPUT_TIME_LIMIT)
         {
             inputTimer += Time.deltaTime;
             StateMachine.HandleInput();
 
-            if ((inputTimer >= INPUT_TIME_LIMIT - 1.0f) && monster)
+            if ((inputTimer >= 1.0f) && monster)
             {
                 StateMachine.MonsterTurn();
                 monster = false;
@@ -120,24 +128,24 @@ public class GameManager : MonoBehaviour
         {
             StateMachine.Update();
 
-            if (PlayerChoice != Choice.None)
-            {
-                if (IsPlayerAttacking)
-                {
-                    yield return StartCoroutine(Win());
-                }
-                else
-                {
-                    yield return StartCoroutine(Lose());
-                }
-            }
-            else
-            {
-                PlayerChoice = Choice.TimeOut;
-                yield return StartCoroutine(Lose());
-            }
+            //if (PlayerChoice != Choice.None)                //******************판정 꼬인거 같음****************************************
+            //{                                                               //판정의 주체를 정하고 수정
+            //    if (IsPlayerAttacking)
+            //    {
+            //        yield return StartCoroutine(Win());
+            //    }
+            //    else
+            //    {
+            //        yield return StartCoroutine(Lose());
+            //    }
+            //}
+            //else
+            //{
+            //    PlayerChoice = Choice.TimeOut;
+            //    yield return StartCoroutine(Lose());
+            //}
         }
-
+        //StopGame();
         yield return new WaitForSeconds(0.1f);
     }
 
@@ -226,7 +234,7 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
                                                //OnisInputPhase();
-        StartGameLoop(); // 변경점: 게임 루프 재시작
+       // StartGameLoop(); // 변경점: 게임 루프 재시작
 
     }
 
@@ -280,8 +288,8 @@ public class GameManager : MonoBehaviour
         text.text = nowCnt.ToString();
 
         yield return new WaitForSeconds(0.1f); //연출을 위한 지연
-        OnisInputPhase();
-        StartGameLoop(); // 변경점: 게임 루프 재시작
+       // OnisInputPhase();
+        //StartGameLoop(); // 변경점: 게임 루프 재시작
 
         // OnWin?.Invoke();    //OnWin 임시 이름인데 불편하네;; 이거 하트 감소 시키는 이벤트
     }
@@ -289,10 +297,10 @@ public class GameManager : MonoBehaviour
     public void ReGame()
     {
         monster = true;
-        OnisInputPhase();    
+       // OnisInputPhase();    
       //  gameStarter = false;
         choose.ResetAllImages();
-        StartGameLoop(); // 변경점: 게임 루프 재시작
+        //StartGameLoop(); // 변경점: 게임 루프 재시작
 
     }
 
